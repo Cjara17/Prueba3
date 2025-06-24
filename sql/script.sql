@@ -1,5 +1,4 @@
-CREATE DATABASE portafolio_db;
-USE portafolio_db;
+USE catalina_salas_db1;
 
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,

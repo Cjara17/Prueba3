@@ -1,15 +1,6 @@
 <?php
-// Redirige automáticamente a la vista pública si el usuario no está autenticado
 session_start();
-if (!isset($_SESSION['user'])) {
-    header("Location: public.php");
-    exit;
-}
-// Incluye la autenticación de usuario
-include 'auth.php';
-// Incluye la conexión a la base de datos
 include 'db.php';
-// Consulta todos los proyectos ordenados por fecha de creación descendente
 $result = $conn->query("SELECT * FROM proyectos ORDER BY created_at DESC");
 ?>
 <!DOCTYPE html>
@@ -18,24 +9,26 @@ $result = $conn->query("SELECT * FROM proyectos ORDER BY created_at DESC");
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portafolio Catalina Salas</title>
-    <!-- Enlace al archivo de estilos CSS -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <h1 style="text-align:center; color:var(--primary-purple); margin-top:1rem;">Portafolio Catalina Salas</h1>
-    <!-- Barra de navegación -->
     <div class="nav-links">
-        <a href="add.php">+ Agregar Proyecto</a> | <a href="logout.php">Cerrar sesión</a>
+        <?php if(isset($_SESSION['user'])): ?>
+            <a href="add.php">+ Agregar Proyecto</a> |
+            <a href="logout.php">Cerrar sesión</a>
+        <?php else: ?>
+            <a href="login.php">Iniciar sesión</a>
+        <?php endif; ?>
+        | <a href="#" id="open-contacto">Contacto</a>
     </div>
     <h2>Proyectos</h2>
-    <!-- Grid de proyectos -->
     <div class="projects-grid">
         <?php while($row = $result->fetch_assoc()): ?>
             <div class="project-card">
                 <h3><?= $row['titulo'] ?></h3>
                 <p><?= $row['descripcion'] ?></p>
                 <?php if($row['imagen']): ?>
-                    <!-- Imagen del proyecto -->
                     <img src="uploads/<?= $row['imagen'] ?>" alt="<?= $row['titulo'] ?>" style="width:100%;height:auto;max-height:none;object-fit:contain;">
                 <?php endif; ?>
                 <div class="project-links">
@@ -45,8 +38,10 @@ $result = $conn->query("SELECT * FROM proyectos ORDER BY created_at DESC");
                     <?php if($row['url_produccion']): ?>
                         <a href="<?= $row['url_produccion'] ?>" target="_blank">Enlace</a>
                     <?php endif; ?>
-                    <a href="edit.php?id=<?= $row['id'] ?>">Editar</a>
-                    <a href="delete.php?id=<?= $row['id'] ?>" onclick="return confirm('¿Seguro?')">Eliminar</a>
+                    <?php if(isset($_SESSION['user'])): ?>
+                        <a href="edit.php?id=<?= $row['id'] ?>">Editar</a>
+                        <a href="delete.php?id=<?= $row['id'] ?>" onclick="return confirm('¿Seguro?')">Eliminar</a>
+                    <?php endif; ?>
                 </div>
             </div>
         <?php endwhile; ?>
