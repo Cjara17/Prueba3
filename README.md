@@ -3,7 +3,7 @@
 Este es un sistema web para gestionar y mostrar un portafolio personal de proyectos. Permite a los administradores agregar, editar y eliminar proyectos, incluyendo detalles como título, descripción, enlaces a GitHub y producción, e imágenes.
 
 
-DEMO: 
+DEMO: https://teclab.uct.cl/~catalina.salas/ProyectoFinal/public.php
 
 ## 🚀 Características
 
