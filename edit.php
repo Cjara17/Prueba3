@@ -1,27 +1,50 @@
 <?php
+// Incluye la autenticación de usuario
 include 'auth.php';
+// Incluye la conexión a la base de datos
 include 'db.php';
 
+// Obtiene el ID del proyecto a editar desde la URL
 $id = $_GET['id'];
+// Consulta los datos actuales del proyecto
 $proyecto = $conn->query("SELECT * FROM proyectos WHERE id=$id")->fetch_assoc();
 
+$upload_error = '';
+// Si el formulario fue enviado por POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  // Obtiene los datos del formulario
   $titulo = $_POST['titulo'];
   $descripcion = $_POST['descripcion'];
   $url_github = $_POST['url_github'];
   $url_produccion = $_POST['url_produccion'];
 
-  if ($_FILES['imagen']['name']) {
-    $imagen = $_FILES['imagen']['name'];
-    move_uploaded_file($_FILES['imagen']['tmp_name'], "uploads/$imagen");
-    $img_sql = ", imagen='$imagen'";
-  } else {
-    $img_sql = "";
+  $img_sql = "";
+  // Si se subió una nueva imagen y no hubo error
+  if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == 0) {
+    $allowed = ['jpg', 'jpeg', 'png', 'gif']; // Tipos permitidos
+    $filename = $_FILES['imagen']['name']; // Nombre original
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION)); // Extensión
+    if (in_array($ext, $allowed)) { // Si la extensión es válida
+      $new_filename = uniqid() . '.' . $ext; // Nombre único
+      $upload_path = 'uploads/' . $new_filename; // Ruta destino
+      if (move_uploaded_file($_FILES['imagen']['tmp_name'], $upload_path)) { // Mueve el archivo
+        $img_sql = ", imagen='$new_filename'"; // Prepara la actualización de la imagen
+      } else {
+        $upload_error = 'Error al mover la imagen. Verifica permisos de la carpeta uploads.';
+      }
+    } else {
+      $upload_error = 'Tipo de archivo no permitido. Usa jpg, jpeg, png o gif.';
+    }
   }
 
+  // Prepara y ejecuta la consulta de actualización
   $sql = "UPDATE proyectos SET titulo='$titulo', descripcion='$descripcion', url_github='$url_github', url_produccion='$url_produccion' $img_sql WHERE id=$id";
   $conn->query($sql);
-  header("Location: index.php");
+  // Si no hubo error de imagen, redirige al index
+  if ($upload_error === '') {
+    header("Location: index.php");
+    exit();
+  }
 }
 ?>
 <!DOCTYPE html>
@@ -31,71 +54,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Editar Proyecto | Portafolio Catalina Salas</title>
   <link rel="stylesheet" href="css/styles.css">
-  <style>
-    .edit-form-container {
-      max-width: 500px;
-      margin: 2rem auto;
-      background: #fff;
-      border-radius: 1rem;
-      box-shadow: 0 4px 16px rgba(107,70,193,0.10);
-      padding: 2rem 2.5rem;
-    }
-    .edit-form-container h2 {
-      text-align: center;
-      color: var(--primary-purple);
-      margin-bottom: 2rem;
-    }
-    .edit-form-container label {
-      font-weight: 600;
-      color: var(--primary-pink);
-      display: block;
-      margin-bottom: 0.3rem;
-      margin-top: 1rem;
-    }
-    .edit-form-container input[type="text"],
-    .edit-form-container input[type="url"],
-    .edit-form-container textarea {
-      width: 100%;
-      padding: 0.7rem;
-      border: 1px solid #ddd;
-      border-radius: 0.5rem;
-      margin-bottom: 0.5rem;
-      font-size: 1rem;
-      background: #faf5ff;
-      resize: vertical;
-    }
-    .edit-form-container input[type="file"] {
-      margin-top: 0.5rem;
-      margin-bottom: 1rem;
-    }
-    .edit-form-container button {
-      background: var(--primary-purple);
-      color: #fff;
-      border: none;
-      padding: 0.8rem 2rem;
-      border-radius: 0.5rem;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 1rem;
-      width: 100%;
-      transition: background 0.2s;
-    }
-    .edit-form-container button:hover {
-      background: var(--primary-pink);
-    }
-    .edit-form-container .current-img {
-      display: block;
-      margin: 1rem auto;
-      max-width: 100%;
-      border-radius: 0.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-  </style>
 </head>
 <body>
   <div class="edit-form-container">
     <h2>Editar Proyecto</h2>
+    <?php if (!empty($upload_error)): ?>
+      <div class="error"><?= $upload_error ?></div>
+    <?php endif; ?>
     <form method="post" enctype="multipart/form-data">
       <label for="titulo">Título</label>
       <input type="text" id="titulo" name="titulo" value="<?= htmlspecialchars($proyecto['titulo']) ?>" required>

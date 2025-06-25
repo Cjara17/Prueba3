@@ -1,6 +1,9 @@
 <?php
+// Inicia la sesión para poder mostrar opciones según el usuario
 session_start();
+// Incluye la conexión a la base de datos
 include 'db.php';
+// Consulta todos los proyectos ordenados por fecha de creación descendente
 $result = $conn->query("SELECT * FROM proyectos ORDER BY created_at DESC");
 ?>
 <!DOCTYPE html>
@@ -12,7 +15,18 @@ $result = $conn->query("SELECT * FROM proyectos ORDER BY created_at DESC");
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <!-- Título principal -->
     <h1 style="text-align:center; color:var(--primary-purple); margin-top:1rem;">Portafolio Catalina Salas</h1>
+    <!-- Presentación con foto y descripción -->
+    <div class="presentacion-flex">
+        <img src="uploads/catalina.jpg" alt="Foto de Catalina Salas" class="presentacion-foto">
+        <p class="presentacion">
+            Desarrolladora en formación con pasión por la tecnología, el diseño funcional y el aprendizaje constante. Mi enfoque se centra en crear soluciones digitales limpias, eficientes y con una estética minimalista. Me interesa especialmente el desarrollo web front-end, la accesibilidad y el impacto social del software.<br><br>
+            Actualmente me encuentro perfeccionando mis habilidades en HTML, CSS, JavaScript y herramientas modernas como Git, y estoy explorando el mundo del desarrollo con frameworks como React. Siempre estoy en búsqueda de nuevos desafíos que me permitan crecer profesional y personalmente.<br><br>
+            Si te interesa colaborar, conocer más sobre mis proyectos o simplemente conversar sobre tecnología, ¡no dudes en ponerte en contacto conmigo!
+        </p>
+    </div>
+    <!-- Barra de navegación -->
     <div class="nav-links">
         <?php if(isset($_SESSION['user'])): ?>
             <a href="add.php">+ Agregar Proyecto</a> |
@@ -23,12 +37,14 @@ $result = $conn->query("SELECT * FROM proyectos ORDER BY created_at DESC");
         | <a href="#" id="open-contacto">Contacto</a>
     </div>
     <h2>Proyectos</h2>
+    <!-- Grid de proyectos -->
     <div class="projects-grid">
         <?php while($row = $result->fetch_assoc()): ?>
             <div class="project-card">
                 <h3><?= $row['titulo'] ?></h3>
                 <p><?= $row['descripcion'] ?></p>
                 <?php if($row['imagen']): ?>
+                    <!-- Imagen del proyecto -->
                     <img src="uploads/<?= $row['imagen'] ?>" alt="<?= $row['titulo'] ?>" style="width:100%;height:auto;max-height:none;object-fit:contain;">
                 <?php endif; ?>
                 <div class="project-links">

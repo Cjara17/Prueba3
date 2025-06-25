@@ -1,8 +1,12 @@
 <?php
+// Incluye la autenticación de usuario
 include 'auth.php';
+// Incluye la conexión a la base de datos
 include 'db.php';
 
+// Si el formulario fue enviado por POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Obtiene los datos del formulario
     $titulo = $_POST['titulo'];
     $descripcion = $_POST['descripcion'];
     $url_github = $_POST['url_github'];
@@ -10,27 +14,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // Manejo de la imagen
     $imagen = '';
+    $upload_error = '';
+    // Si se subió una imagen y no hubo error
     if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == 0) {
-        $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-        $filename = $_FILES['imagen']['name'];
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        
-        if (in_array($ext, $allowed)) {
-            $new_filename = uniqid() . '.' . $ext;
-            $upload_path = 'uploads/' . $new_filename;
-            
-            if (move_uploaded_file($_FILES['imagen']['tmp_name'], $upload_path)) {
-                $imagen = $new_filename;
+        $allowed = ['jpg', 'jpeg', 'png', 'gif']; // Tipos permitidos
+        $filename = $_FILES['imagen']['name']; // Nombre original
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION)); // Extensión
+        if (in_array($ext, $allowed)) { // Si la extensión es válida
+            $new_filename = uniqid() . '.' . $ext; // Nombre único
+            $upload_path = 'uploads/' . $new_filename; // Ruta destino
+            if (move_uploaded_file($_FILES['imagen']['tmp_name'], $upload_path)) { // Mueve el archivo
+                $imagen = $new_filename; // Guarda el nombre en la BD
+            } else {
+                $upload_error = 'Error al mover la imagen. Verifica permisos de la carpeta uploads.';
             }
+        } else {
+            $upload_error = 'Tipo de archivo no permitido. Usa jpg, jpeg, png o gif.';
         }
+    } elseif (isset($_FILES['imagen']) && $_FILES['imagen']['error'] !== 4) {
+        // Si hubo otro error al subir la imagen
+        $upload_error = 'Error al subir la imagen. Código: ' . $_FILES['imagen']['error'];
     }
     
+    // Prepara la consulta para insertar el proyecto
     $sql = "INSERT INTO proyectos (titulo, descripcion, imagen, url_github, url_produccion) 
             VALUES (?, ?, ?, ?, ?)";
     
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssss", $titulo, $descripcion, $imagen, $url_github, $url_produccion);
+    $stmt = $conn->prepare($sql); // Prepara la consulta
+    $stmt->bind_param("sssss", $titulo, $descripcion, $imagen, $url_github, $url_produccion); // Asocia los valores
     
+    // Ejecuta la consulta y redirige si fue exitosa
     if ($stmt->execute()) {
         header("Location: index.php");
         exit();
@@ -46,62 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agregar Proyecto</title>
     <link rel="stylesheet" href="css/styles.css">
-    <style>
-        .form-container {
-            max-width: 600px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--primary-purple);
-            font-weight: bold;
-        }
-        
-        input[type="text"],
-        input[type="url"],
-        textarea {
-            width: 100%;
-            padding: 0.5rem;
-            border: 2px solid var(--light-purple);
-            border-radius: 0.5rem;
-            font-size: 1rem;
-        }
-        
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        
-        .btn-submit {
-            background-color: var(--primary-purple);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
-        }
-        
-        .btn-submit:hover {
-            background-color: var(--light-purple);
-        }
-        
-        .error {
-            color: #e53e3e;
-            margin-bottom: 1rem;
-        }
-    </style>
 </head>
 <body>
     <div class="nav-links">
@@ -113,6 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         <?php if (isset($error)): ?>
             <div class="error"><?= $error ?></div>
+        <?php endif; ?>
+        <?php if (!empty($upload_error)): ?>
+            <div class="error"><?= $upload_error ?></div>
         <?php endif; ?>
         
         <form method="POST" enctype="multipart/form-data">

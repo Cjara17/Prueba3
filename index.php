@@ -1,12 +1,15 @@
 <?php
 // Redirige automáticamente a la vista pública si el usuario no está autenticado
 session_start();
-if (!isset($_SESSION['user'])) {
-    header("Location: public.php");
-    exit;
+// Eliminado el redireccionamiento automático para permitir acceso directo
+// if (!isset($_SESSION['user'])) {
+//     header("Location: public.php");
+//     exit;
+// }
+// Incluye la autenticación de usuario solo si es necesario
+if (isset($_SESSION['user'])) {
+    include 'auth.php';
 }
-// Incluye la autenticación de usuario
-include 'auth.php';
 // Incluye la conexión a la base de datos
 include 'db.php';
 // Consulta todos los proyectos ordenados por fecha de creación descendente

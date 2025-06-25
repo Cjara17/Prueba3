@@ -87,9 +87,12 @@ Portafolio/
 
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.md) para más detalles.
 
-## ✨ Créditos
-
-Desarrollado con asistencia de:
-- GitHub Copilot
+## Herramientas de IA Utilizadas
+- GitHub Copilot para asistencia en el desarrollo de código
+-No me funciona la base de datos.
+-Tengo error aun con la base de datos.
+-estpy frustrada aun no funciona la base de datos
+-puede mejorar el diseño del proyecto.
+-las imagenes no se guardan.
 
 Desarrollado por Catalina Salas.
